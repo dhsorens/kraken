@@ -1038,7 +1038,8 @@ def Directives.interp [Labels]
     directive.interp s (.mk pc (pc+.ofNat sz)) (jmp:=ret) (next := (fun s =>
     interp ds s (pc+.ofNat sz) ret))
 
-abbrev Layout := Kraken.Layout Instr ConstExpr
+abbrev Layout (prog : Program) := Kraken.Layout prog
+abbrev WellFormedLayout (prog : Program) := Kraken.WellFormedLayout prog
 
 @[instance_reducible]
 def Executable.labels (e : Executable) : Labels :=
@@ -1084,15 +1085,15 @@ def Directive.fakeSize (hashOfProgram : UInt64) (d : Directive) : Nat :=
 
 def Program.fakeLayout (prog : Program) : Executable :=
   let h := hash prog;
-  let layout : Layout := {
+  let layout : Layout prog := {
     start := h.toInt64<<<16
     instrSize i := match prog[i]? with
       | some (.instr instr) => instr.fakeSize h
       | _ => 1
   }
-  layout prog
+  layout.apply prog
 
-abbrev eval [layout : Layout] (prog : Program) := Executable.eval (layout prog)
+abbrev eval (prog : Program) [layout : Layout prog] := Executable.eval prog.toExecutable
 
 /-- info: Except.ok 42 -/
 #guard_msgs in
